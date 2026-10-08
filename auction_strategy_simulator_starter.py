@@ -30,16 +30,14 @@ def first_price(valuations, bids):
     utilities : np.ndarray
         Utility for every bidder. Losers receive 0.
     """
-    # TODO 1: Find the index of the highest bid.
-    winner = None
 
-    # TODO 2: First-price winner pays their own bid.
-    price = None
+    winner = int(np.argmax(bids))
+
+    price = bids[winner]
 
     utilities = np.zeros(len(bids), dtype=float)
 
-    # TODO 3: Winner utility = true valuation - price.
-    # Leave all losing utilities at 0.
+    utilities[winner] = valuations[winner] - price
 
     return winner, price, utilities
 
@@ -49,19 +47,16 @@ def second_price(valuations, bids):
 
     Highest bid wins. Winner pays the second-highest bid.
     """
-    # TODO 4: np.argsort returns bidder indices from lowest bid
-    # to highest bid.
-    order = None
+   
+    order = np.argsort(bids)
 
-    # TODO 5: Highest bidder wins.
-    winner = None
+    winner = int(order[-1])
 
-    # TODO 6: Winner pays the second-highest bid.
-    price = None
+    price = bids[order[-2]]
 
     utilities = np.zeros(len(bids), dtype=float)
 
-    # TODO 7: Winner utility = TRUE valuation - price.
+    utilities[winner] = valuations[winner] - price
 
     return winner, price, utilities
 
