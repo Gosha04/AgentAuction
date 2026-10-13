@@ -122,6 +122,37 @@ def focal_bidder_experiment(focal_shade, opponent_shade=0.80,
     }
 
 
+def custom_bidder_experiment(bid_rule, opponent_shade=0.80,
+                             n_agents=N_AGENTS,
+                             trials=N_TRIALS, seed=SEED):
+    """Measure Agent 0's first-price performance with a custom rule.
+
+    Agent 0 bids bid_rule(its valuation).
+    Every opponent bids opponent_shade * valuation.
+    """
+
+    rng = np.random.default_rng(seed)
+
+    focal_utility = []
+    focal_wins = []
+
+    for _ in range(trials):
+        values = rng.integers(10, 101, size=n_agents)
+
+        bids = opponent_shade * values.astype(float)
+        bids[0] = bid_rule(values[0])
+
+        winner, price, utilities = first_price(values, bids)
+
+        focal_utility.append(utilities[0])
+        focal_wins.append(winner == 0)
+
+    return {
+        "average_utility": float(np.mean(focal_utility)),
+        "win_rate": float(np.mean(focal_wins)),
+    }
+
+
 def truthfulness_test_second_price(multiplier,
                                    n_agents=N_AGENTS,
                                    trials=N_TRIALS,
@@ -217,7 +248,7 @@ def main():
     # TODO 8:
     # Replace the short list below with a grid from 0.50 to 1.00
     # in increments of 0.05. Hint: np.arange(0.50, 1.001, 0.05)
-    shades = [0.60, 0.80, 1.00]
+    shades = np.arange(0.50, 1.001, 0.05)
 
     results = []
 
@@ -232,6 +263,8 @@ def main():
     # TODO 9:
     # Find the shade with the highest average_utility.
     # Print that shade and its average utility.
+    best = max(results, key=lambda r: r["average_utility"])
+    print_summary("BEST SHADE", best)
 
     # ========================================================
     # PART 5 - What changes as competition increases?
@@ -262,15 +295,12 @@ def main():
         print_summary("Second price", sp_n)
 
     # ========================================================
-    # OPTIONAL: Create your own strategic agent
+    # PART 6 - Create your own strategic agent
     # ========================================================
-    # Choose a bidding rule not already tested.
-    # Examples:
-    #   - fixed discount: bid = value - 10
-    #   - aggressive: bid = 0.95 * value
-    #   - threshold rule: shade high values differently from low values
-    #
-    # Compare its average utility and win rate to the other strategies.
+    # Bid 85% of value, but never more than 80. Opponents bid
+    # 80% of a value that is at most 100, so none can bid above 80.
+    custom = custom_bidder_experiment(lambda v: min(0.85 * v, 80))
+    print_summary("CUSTOM AGENT: bid = min(0.85 * value, 80)", custom)
 
 
 if __name__ == "__main__":
